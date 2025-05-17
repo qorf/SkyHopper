@@ -3,7 +3,7 @@ package Templates.SkyHopper
 use Libraries.Containers.Array
 use Templates.SkyHopper.Interface.ApplicationWindow
 
-/*The Application class represents the game window and core game features that remain the same between levels.*/
+/* A class that simplifies making a game.*/
 class Application
     Array<Level> levels
     boolean boyPlayer = true

@@ -3,8 +3,7 @@ package Templates.SkyHopper
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 
-/*Levels contain all the information needed for a level in the game. This includes all of the platforms on the screen, the position of the goal, any keys that are
-on the level, and any extra features like portals and bouncers. It also includes extra properties like the player's speed and gravity.*/
+/* A class that allows you to add a new level to SkyHopper.*/
 class Level
     Array<Platform> platforms
     Array<Key> keys
