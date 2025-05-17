@@ -1,0 +1,27 @@
+package Templates.SkyHopper.Interface.Steps
+
+use Templates.SkyHopper.Interface.ApplicationWindow
+use Libraries.Game.GameStateManager
+
+class Step
+    
+    action OnStart
+        
+    end
+    
+    action Update(number seconds)
+        
+    end
+    
+    action OnFinish
+        
+    end
+    
+    blueprint action IsFinished returns boolean
+    
+action GetApplication returns ApplicationWindow
+        GameStateManager manager
+        return cast(ApplicationWindow, manager:GetGame())
+    end
+    
+end

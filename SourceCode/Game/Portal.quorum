@@ -1,0 +1,114 @@
+package Templates.SkyHopper
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+
+/*Portals can instantly transport the player to a new destination. Like platforms, they can be stationary, or they can move.*/
+class Portal
+    
+    number x = 0
+    number y = 0
+    number destinationX = 5
+    number destinationY = 5
+    
+Array<Vector2> waypoints
+    number speed = 80
+    number pointWaitTime = 0
+    number pathWaitTime = 1
+    
+/*This action sets the x and y position of the portal.*/
+    action SetPosition(number x, number y)
+        me:x = x
+        me:y = y
+    end
+    
+    /*This action sets the portal's destination. When the player touches the portal, this is where they will appear.*/
+    action SetDestination(number x, number y)
+        destinationX = x
+        destinationY = y
+    end
+    
+    /*This action returns the x-coordinate of the portal's destination.*/
+    action GetDestinationX returns number
+        return destinationX
+    end
+
+/*This action sets the x-coordinate of the portal's destination.*/
+    action SetDestinationX(number destinationX)
+        me:destinationX = destinationX
+    end
+
+    /*This action returns the y-coordinate of the portal's destination.*/
+    action GetDestinationY returns number
+        return destinationY
+    end
+
+    /*This action sets the y-coordinate of the portal's destination.*/
+    action SetDestinationY(number destinationY)
+        me:destinationY = destinationY
+    end
+    
+/*The AddWaypoint action adds a new waypoint to the portal, using an x, y coordinate. The portal will automatically
+move from its starting position to each of its waypoints, then back again. */
+action AddWaypoint(number x, number y)
+        Vector2 vector
+        vector:Set(x, y)
+        waypoints:Add(vector)
+    end
+    
+/*This action returns an array of all waypoints added to this portal.*/
+    action GetWaypoints returns Array<Vector2>
+        return waypoints
+    end
+    
+/*This action returns how many seconds the portal will wait at each waypoint, if the portal has any. By default, this value is 0.*/
+action GetPointWaitTime returns number
+        return pointWaitTime
+    end
+
+/*This action sets how many seconds the portal will wait at each waypoint, if the portal has any. By default, this value is 0.*/
+    action SetPointWaitTime(number pointWaitTime)
+        me:pointWaitTime = pointWaitTime
+    end
+
+/*This action returns how many seconds the portal will wait after travelling through all of its waypoints, if the portal has any. By default, this value is 1.*/
+    action GetPathWaitTime returns number
+        return pathWaitTime
+    end
+
+/*This action sets how many seconds the portal will wait after travelling through all of its waypoints, if the portal has any. By default, this value is 1.*/
+    action SetPathWaitTime(number pathWaitTime)
+        me:pathWaitTime = pathWaitTime
+    end
+
+/*This action returns how fast the item moves in pixels per second, if the item can move. By default, this value is 80.*/
+    action GetSpeed returns number
+        return speed
+    end
+
+/*This action sets how fast the item moves in pixels per second, if the item can move. By default, this value is 80.*/
+    action SetSpeed(number speed)
+        me:speed = speed
+    end
+
+    /*This action returns the portal's x-coordinate.*/
+    action GetX returns number
+        return x
+    end
+
+    /*This action sets the portal's x-coordinate.*/
+    action SetX(number x)
+        me:x = x
+    end
+
+    /*This action returns the portal's y-coordinate.*/
+    action GetY returns number
+        return y
+    end
+
+    /*This action sets the portal's y-coordinate.*/
+    action SetY(number y)
+        me:y = y
+    end
+
+end

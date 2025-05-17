@@ -1,0 +1,116 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+
+class Mover is Item2D
+    
+    Array<Vector2> waypoints
+    
+    number speed = 80
+    integer waypointIndex = 0
+    boolean movingForward = true
+    
+    number pointWaitTime = 0
+    number pathWaitTime = 1
+    number timer = 0
+    number currentTimeLimit = 0
+    boolean waiting = true
+    
+    number startPointX = 0
+    number startPointY = 0
+    number endPointX = 0
+    number endPointY = 0
+    
+    boolean enableMovement = true
+    
+    action AddWaypoint(number x, number y)
+        Vector2 point
+        point:Set(x, y)
+        waypoints:Add(point)
+    end
+    
+    action AddWaypoint(Vector2 point)
+        Vector2 new
+        new:Set(point)
+        waypoints:Add(new)
+    end
+    
+    action Update(number seconds)
+        if not enableMovement or waypoints:GetSize() <= 1
+            return now
+        end
+        
+        if waiting
+            timer = timer + seconds
+            if timer >= currentTimeLimit
+                timer = 0
+                waiting = false
+                
+if movingForward
+                    waypointIndex = waypointIndex + 1
+                else
+                    waypointIndex = waypointIndex - 1
+                end
+                Vector2 point = waypoints:Get(waypointIndex)
+                endPointX = point:GetX()
+                endPointY = point:GetY()
+                
+                Vector2 direction
+                direction:Set(point):Subtract(GetX(), GetY())
+                direction:Normalize():Scale(speed)
+                SetLinearVelocity(direction)
+            end
+        else
+            Vector2 velocity
+            velocity:Set(GetLinearVelocity())
+            velocity:Scale(seconds)
+            Vector2 goalDistance
+            goalDistance:Set(GetX(), GetY())
+            number distance = goalDistance:Distance(endPointX, endPointY)
+            if velocity:Length() > distance
+                SetPosition(endPointX, endPointY)
+                Vector2 wait
+                wait:Set(0, 0)
+                SetLinearVelocity(wait)
+                waiting = true
+                if waypointIndex = 0
+                    movingForward = true
+                    currentTimeLimit = pathWaitTime
+                elseif waypointIndex = waypoints:GetSize() - 1
+                    movingForward = false
+                    currentTimeLimit = pathWaitTime
+                else
+                    currentTimeLimit = pointWaitTime
+                end
+            end
+            
+        end
+    end
+    
+    action GetSpeed returns number
+        return speed
+    end
+
+    action SetSpeed(number speed)
+        me:speed = speed
+    end
+
+    action GetPointWaitTime returns number
+        return pointWaitTime
+    end
+
+    action SetPointWaitTime(number pointWaitTime)
+        me:pointWaitTime = pointWaitTime
+    end
+
+    action GetPathWaitTime returns number
+        return pathWaitTime
+    end
+
+    action SetPathWaitTime(number pathWaitTime)
+        me:pathWaitTime = pathWaitTime
+    end
+
+end

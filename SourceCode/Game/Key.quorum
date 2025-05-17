@@ -1,0 +1,34 @@
+package Templates.SkyHopper
+
+/*Keys are used to unlock the goal door on each level. If a level has any keys, they all have to be collected before going through the goal.*/
+class Key
+    number x = 0
+    number y = 0
+    
+/*This action sets the x and y position of the goal.*/
+    action SetPosition(number x, number y)
+        SetX(x)
+        SetY(y)
+    end
+    
+/*This action returns the item's x coordinate on the screen.*/
+    action GetX returns number
+        return x
+    end
+
+/*This action sets the item's x coordinate on the screen.*/
+    action SetX(number x)
+        me:x = x
+    end
+
+/*This action sets the item's y coordinate on the screen.*/
+    action GetY returns number
+        return y
+    end
+    
+/*This action sets the item's y coordinate on the screen.*/
+    action SetY(number y)
+        me:y = y
+    end
+
+end

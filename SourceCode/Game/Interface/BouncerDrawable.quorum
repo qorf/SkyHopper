@@ -1,0 +1,55 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Templates.SkyHopper.Bouncer
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+
+class BouncerDrawable is Drawable, Mover
+    
+    number bounceForce = 0
+    
+    on create
+        SetName("Bouncer")
+        SetDescription("Touching a bouncer will launch you in the opposite direction.")
+    end
+    
+    action Load(Bouncer bouncer)
+Color color
+        LoadFilledCircle(16, color:Red())
+        
+        bounceForce = bouncer:GetForce()
+        
+        SetSpeed(bouncer:GetSpeed())
+        SetPointWaitTime(bouncer:GetPointWaitTime())
+        SetPathWaitTime(bouncer:GetPathWaitTime())
+        
+        //SetSize(platform:GetWidth(), platform:GetHeight())
+        SetPosition(bouncer:GetX(), bouncer:GetY())
+        
+        EnablePhysics(true)
+        
+        Array<Vector2> waypoints = bouncer:GetWaypoints()
+        if waypoints:IsEmpty()
+SetUnmovable()
+        else
+        SetNonResponsive()
+            
+            AddWaypoint(bouncer:GetX(), bouncer:GetY())
+            integer i = 0
+            repeat while i < waypoints:GetSize()
+                AddWaypoint(waypoints:Get(i))
+                i = i + 1
+            end
+end
+    end
+    action GetBounceForce returns number
+        return bounceForce
+    end
+
+    action SetBounceForce(number bounceForce)
+        me:bounceForce = bounceForce
+    end
+
+end

@@ -1,0 +1,66 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Compute.Math
+
+class PulseScaleBehavior is Behavior
+    
+Item2D item = undefined
+    
+    number loopTime = 1
+    finished = false
+    
+    number minScale = 1
+    number maxScale = 2
+    
+    Math math
+    number timer = 0
+    
+    action Run(BehaviorEvent event)
+        item = cast(Item2D, event:GetItem())
+    end
+    
+    action Update(number seconds)
+        timer = timer + seconds
+        number value = (timer * math:pi * loopTime)
+        value = math:AbsoluteValue(math:Sine(value))
+        
+        number scale = value * minScale + (1 - value) * maxScale
+        item:SetScaleFromCenter(scale)
+    end
+
+    action SetFinished(boolean finished)
+        me:finished = finished
+    end
+    
+    action IsFinished returns boolean
+        return finished
+    end
+
+    action GetLoopTime returns number
+        return loopTime
+    end
+
+    action SetLoopTime(number loopTime)
+        me:loopTime = loopTime
+    end
+
+    action GetMinScale returns number
+        return minScale
+    end
+
+    action SetMinScale(number minScale)
+        me:minScale = minScale
+    end
+
+    action GetMaxScale returns number
+        return maxScale
+    end
+
+    action SetMaxScale(number maxScale)
+        me:maxScale = maxScale
+    end
+
+end

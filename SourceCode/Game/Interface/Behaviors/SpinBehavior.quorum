@@ -1,0 +1,37 @@
+package Templates.SkyHopper.Interface.Behaviors
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.BehaviorEvent
+
+class SpinBehavior is Behavior
+    
+    Item2D item = undefined
+    
+    number rotationSpeed = 530
+    finished = false
+    
+    action Run(BehaviorEvent event)
+        item = cast(Item2D, event:GetItem())
+    end
+    
+    action Update(number seconds)
+        item:Rotate(seconds * rotationSpeed)
+    end
+
+    action SetFinished(boolean finished)
+        me:finished = finished
+    end
+    
+    action IsFinished returns boolean
+        return finished
+    end
+
+    action GetRotationSpeed returns number
+        return rotationSpeed
+    end
+
+    action SetRotationSpeed(number rotationSpeed)
+        me:rotationSpeed = rotationSpeed
+    end
+
+end

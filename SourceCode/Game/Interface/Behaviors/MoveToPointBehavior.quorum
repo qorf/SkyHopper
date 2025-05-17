@@ -1,0 +1,54 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Compute.Vector2
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Item2D
+
+class MoveToPointBehavior is Behavior
+    
+    Item2D item
+    number speed = 400
+    boolean finished = false
+    
+    number targetX = 0
+    number targetY = 70
+    
+    action Run(BehaviorEvent event)
+        item = cast(Item2D, event:GetItem())
+        targetX = targetX + item:GetWidth() / 2.0
+        targetY = targetY + item:GetHeight() / 2.0
+    end
+    
+    action Update(number seconds)
+        number itemX = item:GetCenterX()
+        number itemY = item:GetCenterY()
+        number moveSpeed = speed * seconds
+        
+        Vector2 movement
+        movement:Set(targetX, targetY)
+        if movement:Distance(itemX, itemY) <= moveSpeed
+            item:SetCenter(targetX, targetY)
+            finished = true
+        else
+            movement:Subtract(itemX, itemY)
+            movement:Normalize()
+            movement:Scale(moveSpeed)
+            item:Move(movement)
+        end
+        
+    end
+    
+    action IsFinished returns boolean
+        return finished
+    end
+    
+    action GetSpeed returns number
+        return speed
+    end
+
+    action SetSpeed(number speed)
+        me:speed = speed
+    end
+
+end

@@ -1,0 +1,50 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+
+class Background is Drawable
+    number aspectRatio = 0
+    
+    on create
+        SetZ(1)
+    end
+    
+    action LoadDefault(number targetWidth, number targetHeight)
+        Load(GetDefaultImage(), targetWidth, targetHeight)
+    end
+    
+    action Load(text filePath, number targetWidth, number targetHeight)
+        Load(GetResourcePath() + "/" + filePath)
+        
+        aspectRatio = GetWidth() / GetHeight()
+        FitBackground(targetWidth, targetHeight)
+    end
+    
+    // Fit one dimension of the background to the target dimensions, and maintain aspect ratio on the larger of the two.
+    action FitBackground(number targetWidth, number targetHeight)
+        number resultWidth = 0
+        number resultHeight = 0
+        number calculatedWidth = aspectRatio * targetHeight
+        if calculatedWidth >= targetWidth
+            // The height is the smaller of the two dimensions (or equal).
+            resultWidth = calculatedWidth
+            resultHeight = targetHeight
+        else
+            // The width is the smaller of the two dimensions.
+            resultWidth = targetWidth
+            resultHeight = resultWidth / aspectRatio
+        end
+        
+        // Set the background's size, and center it along the dimension that's too large.
+        SetSize(resultWidth, resultHeight)
+        SetPosition((targetWidth - resultWidth) / 2.0, (targetHeight - resultHeight) / 2.0)
+    end
+    
+    action GetResourcePath returns text
+        return "Resources/Images"
+    end
+    
+    action GetDefaultImage returns text
+        return "sky1.png"
+    end
+end

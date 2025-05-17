@@ -1,0 +1,102 @@
+package Templates.SkyHopper
+
+use Libraries.Containers.Array
+use Templates.SkyHopper.Interface.ApplicationWindow
+
+/*The Application class represents the game window and core game features that remain the same between levels.*/
+class Application
+    Array<Level> levels
+    boolean boyPlayer = true
+    boolean useRadar = false
+    
+    number volume = 1
+    number zoom = 1
+    
+    /*This action adds a level to the game. Once the game is started, levels will be played in the order they were added to the game. */
+    action AddLevel(Level level)
+        levels:Add(level)
+    end
+    
+    /*This action returns all the levels that have been added to the application.*/
+    action GetLevels returns Array<Level>
+        return levels
+    end
+    
+    /*The Start action opens the window and begins the game. This version of the Start action will open a 1000x1000 pixel window.*/
+    action Start
+        Start(1000, 1000)
+    end
+    
+    /*The Start action opens the window and begins the game. The window will be the given width and height in pixels.*/
+    action Start(integer width, integer height)
+        ApplicationWindow window
+        window:SetScreenSize(width, height)
+        window:SetAppInfo(me)
+        window:StartGame()
+    end
+    
+    /*This action will set the game to use the boy sprite for the player.*/
+    action SetBoyPlayer
+        boyPlayer = true
+    end
+    
+    /*This action will set the game to use the girl sprite for the player.*/
+    action SetGirlPlayer
+        boyPlayer = false
+    end
+    
+    /*This action returns true if the game is set to use the boy player sprite, or false otherwise.*/
+    action HasBoyPlayer returns boolean
+        return boyPlayer
+    end
+    
+/*This action returns true if the game is set to use the girl player sprite, or false otherwise.*/
+    action HasGirlPlayer returns boolean
+        return not boyPlayer
+    end
+    
+    /*The EnableRadar action will turn on extra audio for detecting nearby terrain and features. When enabled,
+sounds will play when the player is standing on the edge of a platform, and different audio will play while
+the player is in the air depending on what is below them. By default, the radar is off.*/
+    action EnableRadar
+        useRadar = true
+    end
+    
+/*The DisableRadar action will turn off extra audio for detecting nearby terrain and features. When enabled,
+sounds will play when the player is standing on the edge of a platform, and different audio will play while
+the player is in the air depending on what is below them. By default, the radar is off.*/
+    action DisableRadar
+        useRadar = false
+    end
+    
+    /*This action returns true if player radar is enabled, or false otherwise.*/
+    action IsRadarEnabled returns boolean
+        return useRadar
+    end
+    
+    /*This action returns the current volume modifier. This should be a value between 0 and 1. By default,
+this is 1.*/
+    action GetVolume returns number
+        return volume
+    end
+
+    /*This action sets the volume level for the game as a number between 0 and 1. For example, 0 would be muted,
+1 would be full volume, and 0.5 would be half volume. By default, the volume is set to 1.*/
+    action SetVolume(number volume)
+        me:volume = volume
+    end
+
+    /*This action returns the current zoom level of the game's camera.*/
+    action GetZoom returns number
+        return zoom
+    end
+
+    /*This action sets the zoom level of the game's camera. By default, the zoom level is 1. Decreasing the zoom
+level will pull the camera back, making objects smaller and giving more space for elements. Increasing the zoom
+level will push the camera in, making objects larger and reducing the amount of visible screen space. It's
+recommended to usually keep the zoom level somewhere between 0.5 and 2.*/
+    action SetZoom(number zoom)
+        me:zoom = zoom
+    end
+
+end

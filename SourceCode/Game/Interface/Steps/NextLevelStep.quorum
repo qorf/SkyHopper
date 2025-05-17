@@ -1,0 +1,15 @@
+package Templates.SkyHopper.Interface.Steps
+use Templates.SkyHopper.Interface.ApplicationWindow
+
+class NextLevelStep is Step
+    
+action OnStart
+        ApplicationWindow app = GetApplication()
+        app:StartNextLevel()
+    end
+    
+    action IsFinished returns boolean
+        return true
+    end
+    
+end

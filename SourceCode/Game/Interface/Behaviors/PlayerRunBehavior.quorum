@@ -1,0 +1,18 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Compute.Vector2
+use Libraries.Game.GameStateManager
+use Templates.SkyHopper.Interface.ApplicationWindow
+
+class PlayerRunBehavior is Behavior
+
+    GameStateManager manager
+
+    action Run(BehaviorEvent event)
+        ApplicationWindow app = cast(ApplicationWindow, manager:GetGame())
+        app:UpdatePlayerSpeed()
+    end
+
+end

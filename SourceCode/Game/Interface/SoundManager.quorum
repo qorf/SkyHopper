@@ -1,0 +1,257 @@
+package Templates.SkyHopper.Interface
+use Libraries.Sound.Audio
+
+class SoundManager
+    
+Audio respawnSound
+    Audio altitudePing
+    Audio altitudeDanger
+    Audio portalPing
+    Audio bouncerPing
+    Audio wallImpact
+    Audio groundImpact
+    Audio runningAudio
+    Audio edgePing
+    Audio edgePingLong
+    Audio jumpAudio
+    Audio victoryAudio
+    Audio boingAudio
+    Audio keyGet
+    Audio closedDoor
+    Audio openDoor
+    Audio teleport
+    
+    number masterVolume = 1
+    
+    action GetResourcePath returns text
+        return "Resources/Sounds/"
+    end
+    
+action LoadSounds
+        respawnSound:Load(GetResourcePath() + "Respawn.wav")
+        respawnSound:SetVolume(masterVolume)
+
+        altitudePing:Load(GetResourcePath() + "AltitudePing.wav")
+        altitudePing:EnableLooping()
+        altitudePing:SetVolume(0.25 * masterVolume)
+
+        altitudeDanger:Load(GetResourcePath() + "AltitudeDanger.wav")
+        altitudeDanger:EnableLooping()
+        altitudeDanger:SetVolume(0.25 * masterVolume)
+        
+        portalPing:Load(GetResourcePath() + "PortalPing.wav")
+        portalPing:EnableLooping()
+        portalPing:SetVolume(0.25 * masterVolume)
+        
+        bouncerPing:Load(GetResourcePath() + "BouncePing.wav")
+        bouncerPing:EnableLooping()
+        bouncerPing:SetVolume(0.25 * masterVolume)
+
+        wallImpact:Load(GetResourcePath() + "Wall_Impact.wav")
+        wallImpact:SetVolume(masterVolume)
+        groundImpact:Load(GetResourcePath() + "Ground_Impact.wav")
+        groundImpact:SetVolume(masterVolume)
+
+        runningAudio:Load(GetResourcePath() + "Running.wav")
+        runningAudio:EnableLooping()
+        runningAudio:SetVolume(masterVolume)
+        edgePing:Load(GetResourcePath() + "EdgePing.wav")
+        edgePing:EnableLooping()
+        edgePing:SetVolume(0.2 * masterVolume)
+        edgePingLong:Load(GetResourcePath() + "EdgePing.wav")
+        edgePingLong:EnableLooping()
+        edgePingLong:SetPitch(0.7)
+        edgePingLong:SetVolume(0.2 * masterVolume)
+
+        jumpAudio:Load(GetResourcePath() + "Jump.wav")
+        jumpAudio:SetPitch(0.75)
+        jumpAudio:SetVolume(0.75 * masterVolume)
+
+        victoryAudio:Load(GetResourcePath() + "Success.wav")
+        victoryAudio:SetVolume(masterVolume)
+        
+        boingAudio:Load(GetResourcePath() + "Boing.wav")
+        boingAudio:SetVolume(masterVolume)
+        
+        keyGet:Load(GetResourcePath() + "Gold Get.wav")
+        keyGet:SetVolume(masterVolume)
+        
+        closedDoor:Load(GetResourcePath() + "ClosedDoor.wav")
+        closedDoor:SetVolume(masterVolume)
+        
+        openDoor:Load(GetResourcePath() + "OpenDoor.wav")
+        openDoor:SetVolume(masterVolume)
+        
+        teleport:Load(GetResourcePath() + "Teleport.wav")
+        teleport:SetVolume(masterVolume)
+    end
+    
+    action PlayRespawn
+        respawnSound:Play()
+    end
+    
+    action PlayWallImpact
+        wallImpact:Play()
+    end
+    
+    action PlayGroundImpact
+        groundImpact:Play()
+    end
+    
+    action PlayJump(integer jumpAmount)
+        number pitch = 0.65 + 0.1 * jumpAmount
+jumpAudio:SetPitch(pitch)
+        jumpAudio:Play()
+    end
+    
+    action PlayVictory
+        victoryAudio:Play()
+    end
+    
+    action IsRunPlaying returns boolean
+        return runningAudio:IsPlaying()
+    end
+    
+    action PlayRunning
+        runningAudio:Play()
+    end
+    
+    action StopRunning
+        runningAudio:Stop()
+    end
+    
+    action GetMasterVolume returns number
+        return masterVolume
+    end
+
+    action SetMasterVolume(number masterVolume)
+        me:masterVolume = masterVolume
+    end
+    
+    action PlayNearEdgePing
+        if edgePingLong:IsPlaying()
+            edgePingLong:Stop()
+        end
+        if edgePing:IsPlaying() = false
+edgePing:Play()
+        end
+    end
+    
+    action PlayFarEdgePing
+        if edgePing:IsPlaying()
+            edgePing:Stop()
+        end
+        if edgePingLong:IsPlaying() = false
+edgePingLong:Play()
+        end
+    end
+    
+    action StopEdgePing
+        if edgePing:IsPlaying()
+            edgePing:Stop()
+        end
+        if edgePingLong:IsPlaying()
+            edgePingLong:Stop()
+        end
+    end
+    
+    action PlayAltitudePing(number pitch)
+        if altitudeDanger:IsPlaying()
+            altitudeDanger:Stop()
+        end
+if portalPing:IsPlaying()
+            portalPing:Stop()
+        end
+        if bouncerPing:IsPlaying()
+            bouncerPing:Stop()
+        end
+        altitudePing:SetPitch(pitch)
+        if altitudePing:IsPlaying() = false
+            altitudePing:Play()
+        end
+    end
+    
+    action PlayAltitudeDanger(number pitch)
+        if altitudePing:IsPlaying()
+            altitudePing:Stop()
+        end
+if portalPing:IsPlaying()
+            portalPing:Stop()
+        end
+        if bouncerPing:IsPlaying()
+            bouncerPing:Stop()
+        end
+        altitudeDanger:SetPitch(pitch)
+        if altitudeDanger:IsPlaying() = false
+            altitudeDanger:Play()
+        end
+    end
+    
+action PlayPortalPing(number pitch)
+        if altitudeDanger:IsPlaying()
+            altitudeDanger:Stop()
+        end
+if altitudePing:IsPlaying()
+            altitudePing:Stop()
+        end
+        if bouncerPing:IsPlaying()
+            bouncerPing:Stop()
+        end
+        portalPing:SetPitch(pitch)
+        if portalPing:IsPlaying() = false
+            portalPing:Play()
+        end
+    end
+    
+action PlayBouncerPing(number pitch)
+        if altitudeDanger:IsPlaying()
+            altitudeDanger:Stop()
+        end
+if portalPing:IsPlaying()
+            portalPing:Stop()
+        end
+        if altitudePing:IsPlaying()
+            altitudePing:Stop()
+        end
+        bouncerPing:SetPitch(pitch)
+        if bouncerPing:IsPlaying() = false
+            bouncerPing:Play()
+        end
+    end
+    
+    action StopAltitudePings
+        if altitudePing:IsPlaying()
+            altitudePing:Stop()
+        end
+        if altitudeDanger:IsPlaying()
+            altitudeDanger:Stop()
+        end
+        if portalPing:IsPlaying()
+            portalPing:Stop()
+        end
+        if bouncerPing:IsPlaying()
+            bouncerPing:Stop()
+        end
+    end
+    
+    action PlayBoing
+        boingAudio:Play()
+    end
+    
+    action PlayKeyGet
+        keyGet:Play()
+    end
+    
+    action PlayClosedDoor
+        closedDoor:Play()
+    end
+    
+    action PlayOpenDoor
+        openDoor:Play()
+    end
+    
+    action PlayTeleport
+        teleport:Play()
+    end
+
+end

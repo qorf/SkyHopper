@@ -1,0 +1,24 @@
+package Templates.SkyHopper.Interface.Steps
+
+class WaitStep is Step
+    
+    number waitTime = 0.5
+    number timer = 0
+    
+    action Update(number seconds)
+        timer = timer + seconds
+    end
+    
+    action IsFinished returns boolean
+        return timer >= waitTime
+    end
+    
+    action GetWaitTime returns number
+        return waitTime
+    end
+
+    action SetWaitTime(number waitTime)
+        me:waitTime = waitTime
+    end
+
+end

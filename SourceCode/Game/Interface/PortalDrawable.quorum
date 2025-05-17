@@ -1,0 +1,67 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Templates.SkyHopper.Portal
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.Color
+
+class PortalDrawable is Drawable, Mover
+    
+    number destinationX = 0
+    number destinationY = 0
+    
+    on create
+        SetName("Portal")
+        SetDescription("Touching a portal will instantly teleport you somewhere else!")
+    end
+    
+action Load(Portal portal)
+        Color color
+        LoadFilledCircle(16, color:Blue())
+        
+        destinationX = portal:GetDestinationX()
+        destinationY = portal:GetDestinationY()
+        
+        SetSpeed(portal:GetSpeed())
+        SetPointWaitTime(portal:GetPointWaitTime())
+        SetPathWaitTime(portal:GetPathWaitTime())
+        
+        //SetSize(platform:GetWidth(), platform:GetHeight())
+        SetPosition(portal:GetX(), portal:GetY())
+        
+        EnablePhysics(true)
+        
+        Array<Vector2> waypoints = portal:GetWaypoints()
+        if waypoints:IsEmpty()
+SetUnmovable()
+        else
+        SetNonResponsive()
+            
+            AddWaypoint(portal:GetX(), portal:GetY())
+            integer i = 0
+            repeat while i < waypoints:GetSize()
+                AddWaypoint(waypoints:Get(i))
+                i = i + 1
+            end
+end
+        
+    end
+    
+    action GetDestinationX returns number
+        return destinationX
+    end
+
+    action SetDestinationX(number destinationX)
+        me:destinationX = destinationX
+    end
+
+    action GetDestinationY returns number
+        return destinationY
+    end
+
+    action SetDestinationY(number destinationY)
+        me:destinationY = destinationY
+    end
+
+end

@@ -1,0 +1,50 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Templates.SkyHopper.Platform
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.ControlShaderView
+
+class PlatformDrawable is Control, Mover
+    on create
+        SetName("Platform")
+    end
+    
+    action Load(Platform platform)
+        ControlShaderView view
+        view:Initialize()
+        SetView2D(view)
+        
+        SetSpeed(platform:GetSpeed())
+        SetPointWaitTime(platform:GetPointWaitTime())
+        SetPathWaitTime(platform:GetPathWaitTime())
+        
+        SetBackgroundColor(platform:GetColor())
+        SetBorderColor(platform:GetBorderColor())
+        SetBorderThickness(platform:GetBorderThickness())
+        SetCornerPixelRounding(5, 5, 5, 5)
+        
+        SetSize(platform:GetWidth(), platform:GetHeight())
+        SetPosition(platform:GetX(), platform:GetY())
+        
+        EnablePhysics(true)
+        
+        Array<Vector2> waypoints = platform:GetWaypoints()
+        if waypoints:IsEmpty()
+SetUnmovable()
+        else
+        SetNonResponsive()
+            
+            AddWaypoint(platform:GetX(), platform:GetY())
+            integer i = 0
+            repeat while i < waypoints:GetSize()
+                AddWaypoint(waypoints:Get(i))
+                i = i + 1
+            end
+end
+        
+    end
+end

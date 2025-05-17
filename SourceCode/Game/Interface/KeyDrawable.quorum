@@ -1,0 +1,51 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Templates.SkyHopper.Key
+use Libraries.Game.Graphics.Texture
+use Libraries.Compute.Math
+
+class KeyDrawable is Drawable
+    
+    number baseX = 0
+    number baseY = 0
+    number animationTimer = 0
+    number bounceTime = 2
+    number bounce = 4
+    Math math
+    
+    on create
+        SetName("Key")
+        SetDescription("Collect all the keys to open the goal!")
+    end
+    
+    action Load(Key key)
+        Texture texture
+        texture:LoadFromFile(GetResourcePath() + "/" + GetImage())
+        
+        TextureRegion region
+        region:LoadTextureRegion(texture, 32, 0, 31, 32)
+        Load(region)
+        
+        baseX = key:GetX()
+        baseY = key:GetY()
+        SetPosition(key:GetX(), key:GetY())
+        
+        SetCollidable(true)
+    end
+    
+    action Update(number seconds)
+        animationTimer = animationTimer + seconds
+        number offset = math:Sine(2 * math:pi * animationTimer / bounceTime) * bounce
+        SetPosition(baseX, baseY + offset)
+    end
+    
+action GetResourcePath returns text
+        return "Resources/Images"
+    end
+    
+    action GetImage returns text
+        return "KeyIcons.png"
+    end
+    
+end

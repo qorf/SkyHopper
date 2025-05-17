@@ -1,0 +1,42 @@
+package Templates.SkyHopper.Interface.Steps
+
+use Libraries.Containers.Array
+
+class StepQueue
+    
+    Step currentStep = undefined
+    Array<Step> nextSteps
+    
+    action Update(number seconds)
+        if currentStep = undefined and nextSteps:IsEmpty() = false
+            currentStep = nextSteps:RemoveFromFront()
+            currentStep:OnStart()
+        end
+        
+        boolean running = true
+        repeat while currentStep not= undefined and running
+            currentStep:Update(seconds)
+            if currentStep:IsFinished()
+                currentStep:OnFinish()
+                if nextSteps:IsEmpty() = false
+                    currentStep = nextSteps:RemoveFromFront()
+                    currentStep:OnStart()
+                else
+                    currentStep = undefined
+                end
+            else
+                running = false
+            end
+        end
+    end
+    
+    action Add(Step step)
+        nextSteps:Add(step)
+    end
+    
+    // Cancels any steps that are queued. Doesn't clear the currently active step.
+    action CancelQueuedSteps
+        nextSteps:Empty()
+    end
+    
+end

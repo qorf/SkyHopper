@@ -1,0 +1,67 @@
+Respawn (Menusound4.wav)
+Created by EverHeat, used under Creative Commons Attribution 3.0
+https://freesound.org/people/EverHeat/sounds/205543/
+
+AltitudeDanger (button.wav)
+Created by Leszek_Szary, dedicated to Public Domain
+https://freesound.org/people/Leszek_Szary/sounds/146718/
+
+AltitudePing (menu click)
+Created by Leszek_Szary, dedicated to Public Domain
+https://freesound.org/people/Leszek_Szary/sounds/146721/
+
+PortalPing (menu button)
+Created by Leszek_Szary, dedicated to Public Domain
+https://freesound.org/people/Leszek_Szary/sounds/191593/
+
+BouncePing (toy button)
+Created by Leszek_Szary, dedicated to Public Domain
+https://freesound.org/people/Leszek_Szary/sounds/191590/
+
+Wall_Impact (book-impact-02.aif)
+Created by Tritus, used under Creative Commons Attribution 3.0
+https://freesound.org/people/Tritus/sounds/240990/
+
+Ground_Impact (Thump 1.wav)
+Created by _stubb, dedicated to Public Domain
+https://freesound.org/people/_stubb/sounds/389636/
+
+Powerup (Powerup.wav)
+Created by sharesynth, dedicated to Public Domain
+https://freesound.org/people/sharesynth/sounds/341227/
+
+Running (RUNNING 1.wav)
+Created by vmgraw, dedicated to Public Domain
+https://freesound.org/people/vmgraw/sounds/257700/
+
+EdgePing, EdgePingIntermediate, & EdgePingLong (Gunpoint.wav)
+Created by MATRIXXX_, used Creative Commons Attribution 3.0
+https://freesound.org/people/MATRIXXX_/sounds/527850/
+
+Jump (Jump05.wav)
+Created by sharesynth, dedicated to Public Domain
+https://freesound.org/people/sharesynth/sounds/344500/
+
+Success (You've succeeded (game jingle))
+Created by Rolly-SFX, dedicated to Public Domain
+https://freesound.org/people/Rolly-SFX/sounds/626259/
+
+Boing (Game Jump Sound - Boing (1 of 2))
+Created by el_boss, dedicated to Public Domain
+https://freesound.org/people/el_boss/sounds/751698/
+
+Gold Get.wav (Coins 1)
+Created by ProjectsU012 on Freesound. Used under the Attribution 4.0 License.
+https://freesound.org/people/ProjectsU012/sounds/341695/
+
+ClosedDoor.wav (Foley_Door_Wood_Handle_Metal_Locked_Sequence_Stereo)
+Created by Nox_Sound, dedicated to Public Domain
+https://freesound.org/people/Nox_Sound/sounds/768656/
+
+OpenDoor.wav (dorm door opening.wav)
+Created by pagancow on Freesound. Dedicated to Public Domain.
+https://freesound.org/people/pagancow/sounds/15419/
+
+Teleport.wav (teleport.mp3)
+Created by outroelison on Freesound. Dedicated to Public Domain.
+https://freesound.org/people/outroelison/sounds/150950/

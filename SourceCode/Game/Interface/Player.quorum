@@ -1,0 +1,52 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Containers.Array
+
+class Player is Drawable
+    
+    number lastFrameX = 0
+    number lastFrameY = 0
+    number currentFrameX = 0
+    number currentFrameY = 0
+    
+    number size = 48
+    Array<TextureRegion> frames
+    
+    on create
+        SetName("Player")
+        SetZ(-1)
+    end
+    
+    action GetScaledSize returns number
+        return size
+    end
+    
+    action Load(Array<TextureRegion> frames)
+        me:frames = frames
+        Load(frames:Get(0))
+        SetSize(48, 48)
+        
+        EnablePhysics(true)
+        SetResponsive()
+        CanRotate(false)
+    end
+    
+    action Update(number seconds)
+        lastFrameX = currentFrameX
+        lastFrameY = currentFrameY
+        currentFrameX = GetX()
+        currentFrameY = GetY()
+    end
+    
+    action GetLastFrameX returns number
+        return lastFrameX
+    end
+
+    action GetLastFrameY returns number
+        return lastFrameY
+    end
+
+end

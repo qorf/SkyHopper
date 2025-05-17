@@ -1,0 +1,883 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Game
+use Templates.SkyHopper.Application
+use Templates.SkyHopper.Level
+use Libraries.Containers.Array
+use Templates.SkyHopper.Platform
+use Libraries.Compute.Vector2
+use Libraries.Game.InputMonitor
+use Libraries.Game.InputSet
+use Templates.SkyHopper.Interface.Behaviors.PlayerRunBehavior
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+use Templates.SkyHopper.Interface.Behaviors.PlayerJumpBehavior
+use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Templates.SkyHopper.Interface.Steps.StepQueue
+use Libraries.Interface.Layouts.Layout
+use Templates.SkyHopper.Goal
+use Templates.SkyHopper.Key
+use Libraries.Interface.Controls.Control
+use Templates.SkyHopper.Interface.Steps.WaitStep
+use Templates.SkyHopper.Interface.Steps.NextLevelStep
+use Templates.SkyHopper.Portal
+use Templates.SkyHopper.Bouncer
+use Libraries.Game.Collision.LocalCollisionPoints2D
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Game.DesktopConfiguration
+use Templates.SkyHopper.Interface.Behaviors.TeleportEffectBehavior
+use Libraries.Game.Graphics.Color
+use Templates.SkyHopper.Interface.Behaviors.AccessibilityHelpBehavior
+use Templates.SkyHopper.Interface.Behaviors.AccessibilityNextBehavior
+use Templates.SkyHopper.Interface.Behaviors.AccessibilityPreviousBehavior
+
+class ApplicationWindow is Game, CollisionListener2D, ResizeListener
+    
+    Application appInfo = undefined
+    Level currentLevel = undefined
+    integer currentLevelIndex = 0
+    
+    number zoom = 1
+    number cameraWidth = 1000
+    number cameraHeight = 1000
+    boolean windowNeedsResizing = false
+    
+number movementSpeed = 150
+    PlayerRunBehavior playerRunBehavior
+    InputSet runLeftInput
+    InputSet runRightInput
+    
+    integer jumpsUsed = 0
+    integer maxJumps = 1
+    number jumpSpeed = 250
+    PlayerJumpBehavior playerJumpBehavior
+    InputSet jumpInput
+    // Occurs when the player stops touching a surface. If the player stops touching a surface and then their y-velocity becomes negative, they begin to fall (i.e. jumping set true).
+    boolean stoppedTouching = true
+    
+Array<TextureRegion> runFrames
+    Array<boolean> runFlipStates
+    number runAnimationTimerMax = 0.1
+    number runAnimationTimer = runAnimationTimerMax
+    integer runFrameCounter = 0
+    // True to use the boy sprites for the player, false to use the girl sprites.
+    boolean boyPlayer = true
+    
+    Array<PlatformDrawable> platforms
+    Array<KeyDrawable> keys
+    Array<PortalDrawable> portals
+    Array<BouncerDrawable> bouncers
+    GoalDrawable goal = undefined
+    Player player
+    
+    // Indicates that the level is transitioning to next stage.
+    boolean levelDone = false
+    number levelEndTime = 4.5
+    
+    // Where the player goes if they fall to the bottom of the level.
+    number playerResetX = 0
+    number playerResetY = 0
+    
+    Layer2D backgroundLayer = undefined
+    Background background
+    integer screenWidth = 0
+    integer screenHeight = 0
+    
+    SoundManager sounds
+    StepQueue stepQueue
+    
+    InputMonitor monitor
+    
+    // What platform the player currently touching, if any. Used for edge detection with the radar sonification system.
+    PlatformDrawable touchingPlatform = undefined
+    number nearEdgeThreshold = 10
+    number farEdgeThreshold = 25
+    
+    // Info for managing screen reader and other accessibility client info.
+    AccessibilityInfo accessInfo
+    /*The index of the currently tabbed-to accessibility element. 
+This iterates through the elements in this order:
+Player (always at 0)
+Goal (always at 1)
+Keys, if any
+Portals, if any
+Bouncers, if any*/
+    integer accessIndex = 0
+    
+    constant integer NONE = 0
+    constant integer PLATFORM = 1
+    constant integer PORTAL = 2
+    constant integer BOUNCER = 3
+    integer surfaceType = NONE
+    
+    on create
+EnableResizing(true)
+        
+        DesktopConfiguration config = GetDesktopConfiguration()
+    end
+    
+    
+
+    action SetAppInfo(Application appInfo)
+        me:appInfo = appInfo
+    end
+
+    action GetAppInfo returns Application
+        return appInfo
+    end
+    
+    action CreateGame
+        AddResizeListener(me)
+        
+        Layer2D newLayer
+        backgroundLayer = newLayer
+        AddLayer(0, backgroundLayer)
+        backgroundLayer:Add(background)
+        
+        zoom = appInfo:GetZoom()
+        UpdateCameraZoom()
+        
+        sounds:SetMasterVolume(appInfo:GetVolume())
+        sounds:LoadSounds()
+        
+EnablePhysics2D(true)
+        AddCollisionListener(me)
+        SetDefaultInputs()
+        
+        boyPlayer = appInfo:HasBoyPlayer()
+        LoadAnimationFrames()
+        
+        screenWidth = GetScreenWidth()
+        screenHeight = GetScreenHeight()
+        
+        LoadLevel(currentLevelIndex)
+    end
+    
+    private action UpdateCameraZoom
+        cameraWidth = GetScreenWidth() / zoom
+        cameraHeight = GetScreenHeight() / zoom
+        
+        Camera camera = GetCamera2D()
+        
+        camera:SetPosition(cameraWidth / 2.0, cameraHeight / 2.0, camera:GetPosition():GetZ())
+        camera:SetZoom(zoom)
+        camera:Update()
+        
+        windowNeedsResizing = false
+    end
+    
+    action SizeChanged(ResizeEvent event)
+        windowNeedsResizing = true
+    end
+    
+    action Update(number seconds)
+        if windowNeedsResizing
+            UpdateCameraZoom()
+        end
+        
+        // If the screen size has changed, refit the background.
+        if screenWidth not= GetScreenWidth() or screenHeight not= GetScreenHeight()
+            screenWidth = GetScreenWidth()
+            screenHeight = GetScreenHeight()
+            background:FitBackground(screenWidth, screenHeight)
+        end
+        
+        // If player has fallen off the bottom of the screen, reset their position
+        if player:GetY() + player:GetHeight() < 0
+            sounds:PlayRespawn()
+            player:SetPosition(playerResetX, playerResetY)
+        end
+        
+        // If the player has recently stopped touching a surface and their velocity is negative, 
+        // they're falling off a surface. Expend their first jump and enter fall state.
+        if stoppedTouching and player:GetLinearVelocity():GetY() < 0 and IsJumping() = false
+            jumpsUsed = jumpsUsed + 1
+            stoppedTouching = false
+            touchingPlatform = undefined
+            sounds:StopEdgePing()
+        end
+        
+if appInfo:IsRadarEnabled()
+            if IsJumping()
+                number fallDistance = GetFallDistance()
+                number maxHeight = GetScreenHeight()
+                if fallDistance < 0
+number value = player:GetY() / (maxHeight * 2)
+                    sounds:PlayAltitudeDanger(1.0 - value)
+                    else
+number value = fallDistance / maxHeight
+                    if surfaceType = PLATFORM
+sounds:PlayAltitudePing(1.0 - value)
+                    elseif surfaceType = PORTAL
+sounds:PlayPortalPing(1.0 - value)
+                    elseif surfaceType = BOUNCER
+sounds:PlayBouncerPing(1.0 - value)
+                    end
+                end
+sounds:StopEdgePing()
+            else
+if touchingPlatform not= undefined
+                    number distanceToEdge = GetDistanceToEdge()
+                    if distanceToEdge <= nearEdgeThreshold
+                        sounds:PlayNearEdgePing()
+                    elseif distanceToEdge <= farEdgeThreshold
+                        sounds:PlayFarEdgePing()
+                    else
+                        sounds:StopEdgePing()
+                    end
+                else
+                    sounds:StopEdgePing()
+                end
+                sounds:StopAltitudePings()
+            end
+                end
+        
+if player:GetLinearVelocity():GetX() not= 0
+            if IsJumping() = false
+                runAnimationTimer = runAnimationTimer - seconds
+                if runAnimationTimer < 0
+                    runAnimationTimer = runAnimationTimerMax
+                    runFrameCounter = runFrameCounter + 1
+                    if runFrameCounter = runFrames:GetSize()
+                        runFrameCounter = 0
+                    end
+                    LoadAnimationFrame(runFrameCounter)
+                end
+                if not sounds:IsRunPlaying()
+                    sounds:PlayRunning()
+                end
+            else
+                if sounds:IsRunPlaying()
+                    sounds:StopRunning()
+                end
+                LoadAnimationFrame(6)
+            end
+        else
+if sounds:IsRunPlaying()
+                    sounds:StopRunning()
+                end
+        end
+        
+        stepQueue:Update(seconds)
+    end
+    
+action LoadAnimationFrame(integer counter)
+        Color color = player:GetColor()
+        player:Load(runFrames:Get(counter))
+        player:SetSize(player:GetScaledSize(), player:GetScaledSize())
+        boolean shouldFlip = false
+        if player:GetLinearVelocity():GetX() >= 0
+            shouldFlip = runFlipStates:Get(counter)
+        else
+            shouldFlip = not runFlipStates:Get(counter)
+        end
+
+        if shouldFlip
+            player:FlipX()
+        end
+        player:SetColor(color)
+    end
+    
+    action LoadLevel(integer index)
+        LoadLevel(appInfo:GetLevels():Get(index))
+    end
+    
+    action LoadLevel(Level level)
+        UnloadCurrentLevel()
+        
+        currentLevel = level
+        
+        SetGravity2D(level:GetGravityX(), level:GetGravityY())
+        movementSpeed = level:GetPlayerSpeed()
+        maxJumps = level:GetMaxJumps()
+        
+        Array<Platform> platformInfo = level:GetPlatforms()
+        integer counter = 0
+        repeat while counter < platformInfo:GetSize()
+            Platform info = platformInfo:Get(counter)
+            if info:GetColor() = undefined
+                info:SetColor(level:GetPlatformColor())
+            end
+            if info:GetBorderColor() = undefined
+                info:SetBorderColor(level:GetPlatformBorderColor())
+            end
+            if info:GetBorderThickness():IsNotANumber()
+                info:SetBorderThickness(level:GetPlatformBorderThickness())
+            end
+            
+            PlatformDrawable platform
+            platform:Load(info)
+            platforms:Add(platform)
+            Add(platform)
+            counter = counter + 1
+        end
+        
+        PlatformDrawable firstPlatform = undefined
+        if platforms:IsEmpty() = false
+            firstPlatform = platforms:GetFromFront()
+        end
+        
+player:Load(runFrames)
+        Add(player)
+        
+        number startX = level:GetPlayerStartX()
+        number startY = level:GetPlayerStartY()
+        if startX:IsNotANumber()
+            if firstPlatform not= undefined
+startX = firstPlatform:GetX() + firstPlatform:GetWidth() / 2.0 - player:GetWidth() / 2.0
+            else
+                startX = GetScreenWidth() / 2.0 - player:GetWidth() / 2.0
+            end
+        end
+        if startY:IsNotANumber()
+            if firstPlatform not= undefined
+startY = firstPlatform:GetY() + firstPlatform:GetHeight() + 5 + 45
+            else
+                startY = GetScreenHeight() / 2.0
+            end
+        end
+        
+        player:SetPosition(startX, startY)
+        playerResetX = startX
+        playerResetY = startY
+        
+        Array<Portal> portalInfo = level:GetPortals()
+        counter = 0
+        repeat while counter < portalInfo:GetSize()
+            Portal info = portalInfo:Get(counter)
+PortalDrawable portal
+            portal:Load(info)
+            portals:Add(portal)
+            Add(portal)
+            
+            counter = counter + 1
+        end
+        
+        Array<Bouncer> bouncerInfo = level:GetBouncers()
+        counter = 0
+        repeat while counter < bouncerInfo:GetSize()
+            Bouncer info = bouncerInfo:Get(counter)
+            BouncerDrawable bouncer
+            bouncer:Load(info)
+            bouncers:Add(bouncer)
+            Add(bouncer)
+            
+            counter = counter + 1
+        end
+        
+        Array<Key> keyInfo = level:GetKeys()
+        counter = 0
+        repeat while counter < keyInfo:GetSize()
+            KeyDrawable key
+            key:Load(keyInfo:Get(counter))
+keys:Add(key)
+            Add(key)
+            
+            counter = counter + 1
+        end
+        
+GoalDrawable goalDrawable
+        Goal goal = level:GetGoal()
+        if goal = undefined
+            if platforms:GetSize() <= 1
+                text errorText = "I couldn't load this level because the goal wasn't set, and there aren't enough platforms to set it automatically.
+Add a goal to the level or add at least two platforms to the game."
+                alert(errorText)
+            end
+            
+            Goal newGoal
+            goal = newGoal
+            PlatformDrawable lastPlatform = platforms:GetFromEnd()
+            goal:SetPosition(lastPlatform:GetX() + lastPlatform:GetWidth() / 2.0 - goalDrawable:GetScaledSize() / 2.0, lastPlatform:GetY() + lastPlatform:GetHeight())
+        end
+        
+        goalDrawable:Load(goal, keys:GetSize())
+        me:goal = goalDrawable
+        Add(goalDrawable)
+        
+        screenWidth = GetScreenWidth()
+        screenHeight = GetScreenHeight()
+        if level:GetBackground() not= ""
+            background:Load(level:GetBackground(), screenWidth, screenHeight)
+        else
+            background:LoadDefault(screenWidth, screenHeight)
+        end
+        
+        SetAccessibilityIndex(0)
+        
+        levelDone = false
+    end
+    
+    action SetAccessibilityIndex(integer index)
+        if index < 0
+            index = GetAccessibilitySize() - 1
+        elseif index >= GetAccessibilitySize()
+            index = 0
+        end
+        
+        accessIndex = index
+        SetAccessibilityInfo(GetItemAtAccessibilityIndex(accessIndex))
+    end
+    
+    action GetAccessibilityIndex returns integer
+        return accessIndex
+    end
+    
+    action GetItemAtAccessibilityIndex(integer index) returns Item2D
+        if index = 0
+            return player
+        elseif index = 1
+            return goal
+        end
+        
+        // Because values in keys can become invalid (i.e. they're hidden once picked up) we need to manually iterate and offset here.
+        integer subIndex = index - 2
+        integer i = 0
+        repeat while i < keys:GetSize()
+            if keys:Get(i):IsShowing()
+                if subIndex = 0
+                    return keys:Get(i)
+                else
+                    subIndex = subIndex - 1
+                end
+            end
+            i = i + 1
+        end
+        
+        if subIndex < portals:GetSize()
+            return portals:Get(subIndex)
+        else
+            subIndex = subIndex - portals:GetSize()
+        end
+        
+        if subIndex < bouncers:GetSize()
+            return bouncers:Get(subIndex)
+        else
+            subIndex = subIndex - bouncers:GetSize()
+        end
+        
+        return undefined
+    end
+    
+    action GetAccessibilitySize returns integer
+        integer i = 0
+        integer validKeys = 0
+        repeat while i < keys:GetSize()
+            if keys:Get(i):IsShowing()
+                validKeys = validKeys + 1
+            end
+            i = i + 1
+        end
+        
+        return 2 + validKeys + portals:GetSize() + bouncers:GetSize()
+    end
+    
+    action SetAccessibilityInfo(Item2D target)
+        AccessibilityInfo newInfo
+        if target:Equals(player)
+            newInfo:Set(player, undefined)
+        else
+            newInfo:Set(player, target)
+        end
+        Add(newInfo)
+        
+        if accessInfo not= undefined
+            Remove(accessInfo)
+        end
+        
+        accessInfo = newInfo
+        newInfo:Focus()
+    end
+    
+    action StartNextLevel
+        currentLevelIndex = currentLevelIndex + 1
+        Array<Level> levels = appInfo:GetLevels()
+        if currentLevelIndex < levels:GetSize()
+            LoadLevel(currentLevelIndex)
+        else
+            currentLevelIndex = 0
+            LoadLevel(currentLevelIndex)
+        end
+    end
+    
+action LoadAnimationFrames
+        integer width = 24
+        integer height = 24
+        Texture texture
+        texture:LoadFromFile("Resources/Images/Characters.png")
+        
+        integer y = 0
+        if not boyPlayer
+            y = height
+        end
+
+        integer counter = 0
+        repeat while counter < 7
+            TextureRegion region
+            region:LoadTextureRegion(texture, width * counter, y, width, height)
+            runFrames:Add(region)
+            counter = counter + 1
+
+            runFlipStates:Add(false)
+        end
+    end
+    
+action SetDefaultInputs
+        KeyboardEvent keys
+        runLeftInput:SetKeyboardInput(keys:LEFT)
+        runRightInput:SetKeyboardInput(keys:RIGHT)
+        jumpInput:SetKeyboardInput(keys:SPACE)
+
+        SetInputs()
+    end
+
+    action SetInputs
+        InputTable table = GetDefaultInputTable()
+        
+        InputSet runLeftStopInput = runLeftInput:Copy()
+        runLeftStopInput:SetInputTrigger(runLeftStopInput:FINISH)
+
+        InputSet runRightStopInput = runRightInput:Copy()
+        runRightStopInput:SetInputTrigger(runRightStopInput:FINISH)
+
+        table:Add(runLeftInput, playerRunBehavior)
+        table:Add(runLeftStopInput, playerRunBehavior)
+        table:Add(runRightInput, playerRunBehavior)
+        table:Add(runRightStopInput, playerRunBehavior)
+
+        table:Add(jumpInput, playerJumpBehavior)
+        
+KeyboardEvent keys
+        InputSet tabSet
+        tabSet:SetKeyboardInput(keys:TAB)
+        InputSet shiftTabSet = tabSet:Copy()
+        shiftTabSet:AddModifier(shiftTabSet:SHIFT)
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        
+        AccessibilityHelpBehavior helpBehavior
+        AccessibilityNextBehavior nextBehavior
+        AccessibilityPreviousBehavior previousBehavior
+        
+        table:Add(escapeSet, helpBehavior)
+        table:Add(tabSet, nextBehavior)
+        table:Add(shiftTabSet, previousBehavior)
+    end
+    
+    action UnloadCurrentLevel
+        if currentLevel = undefined
+            return now
+        end
+        
+        integer i = 0
+        repeat while i < platforms:GetSize()
+            Remove(platforms:Get(i))
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < keys:GetSize()
+            Remove(keys:Get(i))
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < portals:GetSize()
+            Remove(portals:Get(i))
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < bouncers:GetSize()
+            Remove(bouncers:Get(i))
+            i = i + 1
+        end
+        
+        Remove(goal)
+        Remove(player)
+        
+        platforms:Empty()
+        keys:Empty()
+        portals:Empty()
+        bouncers:Empty()
+        goal = undefined
+        
+        currentLevel = undefined
+    end
+    
+action UpdatePlayerSpeed
+        number totalSpeed = 0
+        if monitor:IsKeyPressed(runLeftInput:GetInputValue())
+            totalSpeed = -movementSpeed
+        end
+        if monitor:IsKeyPressed(runRightInput:GetInputValue())
+            totalSpeed = totalSpeed + movementSpeed
+        end
+
+        Vector2 velocity
+        velocity:Set(totalSpeed, player:GetLinearVelocity():GetY())
+        player:SetLinearVelocity(velocity)
+
+        if not IsJumping() and totalSpeed = 0
+runFrameCounter = 0
+            LoadAnimationFrame(runFrameCounter)
+        end
+        
+        // Reset the accessibility info list.
+        accessIndex = 0
+    end
+    
+action PlayerJump
+        if jumpsUsed >= maxJumps
+            return now
+        end
+
+        Vector2 velocity
+        velocity:Set(player:GetLinearVelocity():GetX(), jumpSpeed)
+        
+        jumpsUsed = jumpsUsed + 1
+        touchingPlatform = undefined
+        sounds:StopEdgePing()
+        sounds:PlayJump(jumpsUsed)
+
+        //SetActiveEdgePing(undefined)
+
+        player:SetLinearVelocity(velocity)
+        runFrameCounter = 6
+        LoadAnimationFrame(runFrameCounter)
+
+        //if doubleJumpUsed
+//            doubleJumpAudio:Play()
+//        else
+//            resetPosition:Set(player:GetX(), player:GetY())
+//            jumpAudio:Play()
+//        end
+    end
+    
+    action IsJumping returns boolean
+        return jumpsUsed > 0
+    end
+    
+action BeginCollision(CollisionEvent2D event)
+        Player playerItem = undefined
+        PlatformDrawable platformItem = undefined
+        PortalDrawable portalItem = undefined
+        BouncerDrawable bouncerItem = undefined
+        GoalDrawable goalItem = undefined
+        KeyDrawable keyItem = undefined
+        
+        Item2D itemA = event:GetItemA()
+        Item2D itemB = event:GetItemB()
+        
+        if itemA is Player
+            playerItem = cast(Player, itemA)
+        elseif itemB is Player
+playerItem = cast(Player, itemB)
+        end
+        
+if itemA is PlatformDrawable
+            platformItem = cast(PlatformDrawable, itemA)
+        elseif itemB is PlatformDrawable
+platformItem = cast(PlatformDrawable, itemB)
+        end
+        
+        if itemA is PortalDrawable
+            portalItem = cast(PortalDrawable, itemA)
+        elseif itemB is PortalDrawable
+            portalItem = cast(PortalDrawable, itemB)
+        end
+        
+        if itemA is BouncerDrawable
+            bouncerItem = cast(BouncerDrawable, itemA)
+        elseif itemB is BouncerDrawable
+            bouncerItem = cast(BouncerDrawable, itemB)
+        end
+        
+        if itemA is GoalDrawable
+            goalItem = cast(GoalDrawable, itemA)
+        elseif itemB is GoalDrawable
+            goalItem = cast(GoalDrawable, itemB)
+        end
+        
+        if itemA is KeyDrawable
+            keyItem = cast(KeyDrawable, itemA)
+        elseif itemB is KeyDrawable
+            keyItem = cast(KeyDrawable, itemB)
+        end
+        
+        if playerItem not= undefined
+            if platformItem not= undefined
+                if IsJumping() and playerItem:GetLastFrameY() > (platformItem:GetY() + platformItem:GetHeight())
+                    sounds:PlayGroundImpact()
+                    jumpsUsed = 0
+                     runFrameCounter = 0
+                     LoadAnimationFrame(runFrameCounter)
+                    stoppedTouching = false
+                    touchingPlatform = platformItem
+                    // Update player speed to reset any velocity imparted by bouncers before landing
+                    UpdatePlayerSpeed()
+                    
+                elseif IsJumping() and playerItem:GetLastFrameY() < platformItem:GetY()
+// Player jumps into the bottom of a platform
+                    sounds:PlayWallImpact()
+                elseif player:GetLinearVelocity():GetX() not= 0
+                    // Player is running into the side of a platform
+                    sounds:PlayWallImpact()
+                end
+                
+            elseif goalItem not= undefined
+                if goal:IsOpen()
+                    if levelDone = false
+                        WaitStep wait
+                        wait:SetWaitTime(levelEndTime)
+                        stepQueue:Add(wait)
+                        
+                        NextLevelStep nextLevel
+                        stepQueue:Add(nextLevel)
+                        
+                        goal:PlayVictoryAnimation()
+                        sounds:PlayVictory()
+                        
+                        levelDone = true
+                    end
+                else
+                    sounds:PlayClosedDoor()
+                end
+            elseif keyItem not= undefined
+                if keyItem:IsShowing()
+                    goal:FoundKey()
+                    keyItem:Hide()
+                    sounds:PlayKeyGet()
+                end
+            elseif portalItem not= undefined
+                player:SetPosition(portalItem:GetDestinationX(), portalItem:GetDestinationY())
+                TeleportEffectBehavior teleportBehavior
+                player:AddBehavior(teleportBehavior)
+sounds:PlayTeleport()
+            elseif bouncerItem not= undefined
+                Vector2 direction
+                direction:Set(playerItem:GetCenterX(), playerItem:GetCenterY())
+                direction:Subtract(bouncerItem:GetCenterX(), bouncerItem:GetCenterY())
+                direction:Normalize():Scale(bouncerItem:GetBounceForce())
+                playerItem:SetLinearVelocity(direction)
+                sounds:PlayBoing()
+            end
+        end
+    end
+
+    action FinishCollision(CollisionEvent2D event)
+
+Player playerItem = undefined
+        PlatformDrawable platformItem = undefined
+        
+        Item2D itemA = event:GetItemA()
+        Item2D itemB = event:GetItemB()
+        
+        if itemA is Player
+            playerItem = cast(Player, itemA)
+        elseif itemB is Player
+playerItem = cast(Player, itemB)
+        end
+        
+if itemA is PlatformDrawable
+            platformItem = cast(PlatformDrawable, itemA)
+        elseif itemB is PlatformDrawable
+platformItem = cast(PlatformDrawable, itemB)
+        end
+        
+        if playerItem not= undefined and platformItem not= undefined
+            stoppedTouching = true
+        end
+    end
+    
+    action SetBoyPlayer
+        boyPlayer = true
+    end
+    
+    action SetGirlPlayer
+        boyPlayer = false
+    end
+    
+    action GetDistanceToEdge returns number
+        if touchingPlatform = undefined
+            return farEdgeThreshold + 1
+        end
+        
+        number playerX = player:GetCenterX()
+        number rightEdge = (touchingPlatform:GetX() + touchingPlatform:GetWidth()) - playerX
+        number leftEdge = playerX - touchingPlatform:GetX()
+        if leftEdge < rightEdge
+            return leftEdge
+        else
+            return rightEdge
+        end
+    end
+    
+    // Returns the y-distance from the player's position to the nearest platform beneath them. Returns -1 if there are no platforms below the player.
+    action GetFallDistance returns number
+        surfaceType = NONE
+        
+        number playerX = player:GetCenterX()
+        number playerY = player:GetY()
+        integer i = 0
+        number result = -1
+        repeat while i < platforms:GetSize()
+            PlatformDrawable platform = platforms:Get(i)
+            number platformTop = platform:GetY() + platform:GetHeight()
+            if platform:GetX() <= playerX and (platform:GetX() + platform:GetWidth() >= playerX) and (platformTop <= playerY)
+                number distance = playerY - platformTop
+                if result < 0 or distance < result
+                    surfaceType = PLATFORM
+                    result = distance
+                end
+            end
+            i = i + 1
+        end
+        
+        // Repeat the steps for bouncers and portals.
+        i = 0
+        repeat while i < bouncers:GetSize()
+            BouncerDrawable bouncer = bouncers:Get(i)
+number platformTop = bouncer:GetY() + bouncer:GetHeight()
+            if bouncer:GetX() <= playerX and (bouncer:GetX() + bouncer:GetWidth() >= playerX) and (platformTop <= playerY)
+                number distance = playerY - platformTop
+                if result < 0 or distance < result
+                    surfaceType = BOUNCER
+                    result = distance
+                end
+            end
+            
+            i = i + 1
+        end
+        
+i = 0
+        repeat while i < portals:GetSize()
+            PortalDrawable portal = portals:Get(i)
+number platformTop = portal:GetY() + portal:GetHeight()
+            if portal:GetX() <= playerX and (portal:GetX() + portal:GetWidth() >= playerX) and (platformTop <= playerY)
+                number distance = playerY - platformTop
+                if result < 0 or distance < result
+                    surfaceType = PORTAL
+                    result = distance
+                end
+            end
+            
+            i = i + 1
+        end
+        
+        return result
+    end
+
+    action GetSounds returns SoundManager
+        return sounds
+    end
+
+end

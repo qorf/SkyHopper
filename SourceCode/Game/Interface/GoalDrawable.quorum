@@ -1,0 +1,145 @@
+package Templates.SkyHopper.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Templates.SkyHopper.Goal
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.GameStateManager
+use Templates.SkyHopper.Interface.Behaviors.MoveToPointBehavior
+use Templates.SkyHopper.Interface.Behaviors.SpinBehavior
+use Templates.SkyHopper.Interface.Behaviors.PulseScaleBehavior
+
+class GoalDrawable is Drawable
+    
+    // How many keys need to be found to open this door.
+    integer locks = 0
+    
+    number animationTimer = 0
+    number animationThreshold = 0.65
+    integer animationIndex = 0
+    
+    Array<Texture> openDoorImages
+    
+    number scaledSize = 64
+    
+    boolean victoryAnimation = false
+    Texture victoryTexture
+    Drawable victoryStar
+    
+    on create
+        SetName("Goal")
+    end
+    
+    action Load(Goal goal, integer locks)
+        me:locks = locks
+        UpdateDescription()
+        
+        LoadOpenImages()
+        if IsOpen()
+            Load(openDoorImages:Get(0))
+        else
+            Load(GetResourcePath() + "/" + GetClosedImage())
+        end
+        
+        SetSize(scaledSize, scaledSize)
+        SetPosition(goal:GetX(), goal:GetY())
+        
+SetCollidable(true)
+    end
+    
+    private action UpdateDescription
+        if locks > 0
+            text keys = "keys"
+            if locks = 1
+                keys = "key"
+            end
+            SetDescription("Locked. Collect " + locks + " more " + keys + " to open.")
+        else
+            SetDescription("Reach the goal to complete the level!")
+        end
+    end
+    
+    action Update(number seconds)
+        if IsOpen() and victoryAnimation = false
+            animationTimer = animationTimer + seconds
+            if animationTimer >= animationThreshold
+                animationTimer = 0
+                animationIndex = (animationIndex + 1) mod openDoorImages:GetSize()
+                Load(openDoorImages:Get(animationIndex))
+                SetSize(scaledSize, scaledSize)
+            end
+        end
+    end
+    
+    action LoadOpenImages
+        Texture door1
+        door1:LoadFromFile(GetResourcePath() + "/" + GetOpenImage1())
+Texture door2
+        door2:LoadFromFile(GetResourcePath() + "/" + GetOpenImage2())
+        
+        openDoorImages:Add(door1)
+        openDoorImages:Add(door2)
+        
+        victoryTexture:LoadFromFile(GetResourcePath() + "/Open Door 3.png")
+    end
+    
+    action PlayVictoryAnimation
+        victoryAnimation = true
+        
+        Load(victoryTexture)
+        victoryStar:Load(GetResourcePath() + "/Star.png")
+        SetSize(scaledSize, scaledSize)
+        victoryStar:SetSize(scaledSize, scaledSize)
+        Add(victoryStar)
+        
+        MoveToPointBehavior moveBehavior
+        SpinBehavior spinBehavior
+        PulseScaleBehavior pulseBehavior
+        victoryStar:AddBehavior(moveBehavior)
+        victoryStar:AddBehavior(spinBehavior)
+        victoryStar:AddBehavior(pulseBehavior)
+    end
+    
+    action FoundKey
+        locks = locks - 1
+UpdateDescription()
+        if IsOpen()
+            // Let the next update handle loading the open door image for us
+            animationTimer = animationThreshold
+            
+            GameStateManager manager
+            ApplicationWindow app = cast(ApplicationWindow, manager:GetGame())
+            SoundManager sounds = app:GetSounds()
+            sounds:PlayOpenDoor()
+        end
+    end
+    
+    action IsOpen returns boolean
+        return locks <= 0
+    end
+    
+action GetResourcePath returns text
+        return "Resources/Images"
+    end
+    
+    action GetClosedImage returns text
+        return "Closed Door.png"
+    end
+    
+    action GetOpenImage1 returns text
+        return "Open Door 1.png"
+    end
+    
+    action GetOpenImage2 returns text
+        return "Open Door 2.png"
+    end
+    
+    action GetScaledSize returns number
+        return scaledSize
+    end
+
+    action SetScaledSize(number scaledSize)
+        me:scaledSize = scaledSize
+    end
+
+end

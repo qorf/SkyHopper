@@ -1,0 +1,17 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Events.BehaviorEvent
+use Templates.SkyHopper.Interface.ApplicationWindow
+
+class PlayerJumpBehavior is Behavior
+
+    GameStateManager manager
+
+    action Run(BehaviorEvent event)
+        ApplicationWindow app = cast(ApplicationWindow, manager:GetGame())
+        app:PlayerJump()
+    end
+
+end

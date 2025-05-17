@@ -1,0 +1,258 @@
+package Templates.SkyHopper
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+
+/*Levels contain all the information needed for a level in the game. This includes all of the platforms on the screen, the position of the goal, any keys that are
+on the level, and any extra features like portals and bouncers. It also includes extra properties like the player's speed and gravity.*/
+class Level
+    Array<Platform> platforms
+    Array<Key> keys
+    Goal goal = undefined
+    
+    Array<Portal> portals
+    Array<Bouncer> bouncers
+    
+    number playerStartX = 0
+    number playerStartY = 0
+    number playerSpeed = 150
+    
+    Color platformColor
+    Color platformBorderColor
+    number platformBorderThickness = 2
+    
+    number gravityX = 0
+    number gravityY = -250
+    
+    integer maxJumps = 1
+    
+    text background = ""
+    
+    on create
+        playerStartX = playerStartX:GetNotANumberValue()
+        playerStartY = playerStartY:GetNotANumberValue()
+        
+        Color color
+platformColor = color:CustomColor(233 / 255.0, 244 / 255.0, 1, 1)
+        platformBorderColor = color:CustomColor(0, 0, 64 / 255.0, 1)
+    end
+    
+    /*This action adds a platform manually to the level. You can use the other versions of the AddPlatform action to create platforms more conveniently.*/
+    action AddPlatform(Platform platform)
+        platforms:Add(platform)
+    end
+    
+    /*This action will add a platform to the level at the given x, y coordinates, with the provided with and height in pixels.
+This will also return the platform, so you can modify its properties further.*/
+    action AddPlatform(number x, number y, integer width, integer height) returns Platform
+        Platform platform
+        platform:SetPosition(x, y)
+        platform:SetSize(width, height)
+        AddPlatform(platform)
+        return platform
+    end
+    
+    /*This action will add a platform to the level at the given x, y coordinates that is 80 pixels wide and 25 pixels tall.*/
+    action AddShortPlatform(number x, number y) returns Platform
+        return AddPlatform(x, y, 80, 25)
+    end
+    
+    /*This action will add a platform to the level at the given x, y coordinates that is 160 pixels wide and 25 pixels tall.*/
+    action AddMediumPlatform(number x, number y) returns Platform
+        return AddPlatform(x, y, 160, 25)
+    end
+    
+    /*This action will add a platform to the level at the given x, y coordinates that is 240 pixels wide and 25 pixels tall.*/
+    action AddLongPlatform(number x, number y) returns Platform
+        return AddPlatform(x, y, 240, 25)
+    end
+    
+    /*This action returns an array of all platforms added to this level.*/
+    action GetPlatforms returns Array<Platform>
+        return platforms
+    end
+    
+    /*The SetPlayerStartPosition action will set the player's starting position on the screen. The player will appear here when the level starts,
+as well as when they fall off the bottom of the screen. If this value isn't set, the player will be placed on the first platform added to the level.*/
+    action SetPlayerStartPosition(number x, number y)
+        playerStartX = x
+        playerStartY = y
+    end
+    
+    /*This action will return the player's starting x position.*/
+    action GetPlayerStartX returns number
+        return playerStartX
+    end
+
+/*The SetPlayerStartX action will set the player's starting x position on the screen. The player will appear here when the level starts,
+as well as when they fall off the bottom of the screen. If this value isn't set, the player will be placed on the first platform added to the level.*/
+    action SetPlayerStartX(number playerStartX)
+        me:playerStartX = playerStartX
+    end
+
+/*This action will return the player's starting y position.*/
+    action GetPlayerStartY returns number
+        return playerStartY
+    end
+
+/*The SetPlayerStartY action will set the player's starting y position on the screen. The player will appear here when the level starts,
+as well as when they fall off the bottom of the screen. If this value isn't set, the player will be placed on the first platform added to the level.*/
+    action SetPlayerStartY(number playerStartY)
+        me:playerStartY = playerStartY
+    end
+
+    /*This action returns the name of the image file that will be used for the level's background, if a custom file has been provided.*/
+    action GetBackground returns text
+        return background
+    end
+
+    /*This action sets the name of a custom image file that will be used for the level's background. The file must be located in the Resources/Images folder of the project.*/
+    action SetBackground(text background)
+        me:background = background
+    end
+    
+    /*The SetGoal action sets the x, y coordinates of the end goal for this level. If this value isn't provided, the goal will be placed on the last platform added to the game.*/
+    action SetGoal(number x, number y) returns Goal
+        if goal = undefined
+Goal goal
+me:goal = goal
+        end
+        
+        goal:SetPosition(x, y)
+        return goal
+    end
+    
+    /*This action returns the goal for this level.*/
+    action GetGoal returns Goal
+        return goal
+    end
+    
+    /*This action adds a key to level, located at the given x,y coordinates. If the level has any keys, they all have to be collected before the exit door will open.*/
+    action AddKey(number x, number y) returns Key
+        Key key
+        key:SetPosition(x, y)
+        keys:Add(key)
+        return key
+    end
+    
+    /*This action returns an array of all keys added to this level.*/
+    action GetKeys returns Array<Key>
+        return keys
+    end
+
+    /*This action returns the default color used for platforms on this level.*/
+    action GetPlatformColor returns Color
+        return platformColor
+    end
+
+    /*This action sets the default color used for platforms on this level.*/
+    action SetPlatformColor(Color platformColor)
+        me:platformColor = platformColor
+    end
+
+    /*This action returns the default border color used for platforms on this level.*/
+    action GetPlatformBorderColor returns Color
+        return platformBorderColor
+    end
+
+    /*This action sets the default border color used for platforms on this level.*/
+    action SetPlatformBorderColor(Color platformBorderColor)
+        me:platformBorderColor = platformBorderColor
+    end
+
+    /*This action returns the default border thickness of platforms on this level. By default, this value is 2.*/
+    action GetPlatformBorderThickness returns number
+        return platformBorderThickness
+    end
+
+/*This action sets the default border thickness of platforms on this level. By default, this value is 2.*/
+    action SetPlatformBorderThickness(number platformBorderThickness)
+        me:platformBorderThickness = platformBorderThickness
+    end
+
+    /*This action sets the gravity for this level. By default, the gravity is 0 on the x-axis, and -250 on the y-axis.*/
+    action SetGravity(number gravityX, number gravityY)
+        me:gravityX = gravityX
+        me:gravityY = gravityY
+    end
+    
+    /*This action returns the level's gravity on the x-axis.*/
+    action GetGravityX returns number
+        return gravityX
+    end
+
+/*This action sets the level's gravity on the x-axis.*/
+    action SetGravityX(number gravity)
+        me:gravityX = gravity
+    end
+
+/*This action returns the level's gravity on the y-axis.*/
+    action GetGravityY returns number
+        return gravityY
+    end
+
+/*This action sets the level's gravity on the y-axis.*/
+    action SetGravityY(number gravityY)
+        me:gravityY = gravityY
+    end
+
+/*This action returns the player's movement speed. By default, this value is 150.*/
+    action GetPlayerSpeed returns number
+        return playerSpeed
+    end
+
+/*This action sets the player's movement speed. By default, this value is 150.*/
+    action SetPlayerSpeed(number playerSpeed)
+        me:playerSpeed = playerSpeed
+    end
+    
+    /*This action adds a new portal to the game. The first two parameters will set the portal's position on the screen. The last
+two will set the destination coordinates, where the player will be teleported if they touch the portal.*/
+    action AddPortal(number x, number y, number destinationX, number destinationY) returns Portal
+        Portal portal
+        portals:Add(portal)
+        
+        portal:SetPosition(x, y)
+        portal:SetDestination(destinationX, destinationY)
+        
+        return portal
+    end
+    
+    /*This action returns an array of all portals added to the game.*/
+    action GetPortals returns Array<Portal>
+        return portals
+    end
+    
+    /*This action will add a new bouncer to the level at the given coordinates. Bouncers will push away the player if they touch one.
+If no force value is provided, the default bouncer pushes with 300 units of force.*/
+    action AddBouncer(number x, number y) returns Bouncer
+        return AddBouncer(x, y, 300)
+    end
+    
+    /*This action will add a new bouncer to the level at the given coordinates, and it will set how much force it pushes away players with. */
+    action AddBouncer(number x, number y, number force) returns Bouncer
+        Bouncer bouncer
+        bouncers:Add(bouncer)
+        
+        bouncer:SetPosition(x, y)
+        bouncer:SetForce(force)
+        
+        return bouncer
+    end
+    
+    /*This action returns an array of all bouncers added to the level.*/
+    action GetBouncers returns Array<Bouncer>
+        return bouncers
+    end
+
+    /*This action returns how many times the player can jump without touching the ground. By default, this value is 1.*/
+    action GetMaxJumps returns integer
+        return maxJumps
+    end
+
+    /*This action sets how many times the player can jump without touching the ground. By default, this value is 1.*/
+    action SetMaxJumps(integer maxJumps)
+        me:maxJumps = maxJumps
+    end
+
+end

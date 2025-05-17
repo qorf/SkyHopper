@@ -1,0 +1,56 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Templates.SkyHopper.Interface.Player
+use Libraries.Game.Graphics.Color
+
+class TeleportEffectBehavior is Behavior
+    
+    Player player = undefined
+    
+    Color effectColor
+    Color goalColor
+    
+    number effectTime = 0.2
+    number timer = 0
+    
+    on create
+        effectColor = effectColor:Blue()
+    end
+    
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Player)
+            return now
+        end
+        
+        player = cast(Player, event:GetItem())
+        if player:GetColor() not= undefined
+            goalColor = player:GetColor()
+        else
+            goalColor:SetColor(1, 1, 1, 1)
+        end
+        
+        player:SetColor(goalColor)
+    end
+    
+    action Update(number seconds)
+        timer = timer + seconds
+        if timer >= effectTime
+            player:SetColor(goalColor)
+        else
+            Color color
+            percent = (timer / effectTime)
+            number red = goalColor:GetRed() * percent + effectColor:GetRed() * (1 - percent)
+number green = goalColor:GetGreen() * percent + effectColor:GetGreen() * (1 - percent)
+number blue = goalColor:GetBlue() * percent + effectColor:GetBlue() * (1 - percent)
+number alpha = goalColor:GetAlpha() * percent + effectColor:GetAlpha() * (1 - percent)
+            color:SetColor(red, green, blue, alpha)
+            player:SetColor(color)
+        end
+    end
+    
+    action IsFinished returns boolean
+        return timer >= effectTime
+    end
+end

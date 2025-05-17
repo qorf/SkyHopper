@@ -1,0 +1,14 @@
+package Templates.SkyHopper.Interface.Behaviors
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
+use Templates.SkyHopper.Interface.ApplicationWindow
+
+class AccessibilityPreviousBehavior is Behavior
+    action Run(BehaviorEvent event)
+        GameStateManager manager
+        ApplicationWindow app = cast(ApplicationWindow, manager:GetGame())
+        app:SetAccessibilityIndex(app:GetAccessibilityIndex() - 1)
+    end
+end
