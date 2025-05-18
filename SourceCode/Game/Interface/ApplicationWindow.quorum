@@ -120,6 +120,7 @@ Bouncers, if any*/
     
     on create
 EnableResizing(true)
+        SetGameName("Sky Hopper")
         
         DesktopConfiguration config = GetDesktopConfiguration()
     end

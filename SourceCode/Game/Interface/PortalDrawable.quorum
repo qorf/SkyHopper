@@ -17,8 +17,8 @@ class PortalDrawable is Drawable, Mover
     end
     
 action Load(Portal portal)
-        Color color
-        LoadFilledCircle(16, color:Blue())
+        Load(GetResourcePath() + GetDefaultImage())
+        SetSize(36, 48)
         
         destinationX = portal:GetDestinationX()
         destinationY = portal:GetDestinationY()
@@ -62,6 +62,14 @@ end
 
     action SetDestinationY(number destinationY)
         me:destinationY = destinationY
+    end
+    
+action GetResourcePath returns text
+        return "Resources/Images/"
+    end
+    
+    action GetDefaultImage returns text
+        return "Portal.png"
     end
 
 end

@@ -5,6 +5,7 @@ use Templates.SkyHopper.Bouncer
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
+use Libraries.Game.Collision.Shapes.Circle
 
 class BouncerDrawable is Drawable, Mover
     
@@ -16,8 +17,10 @@ class BouncerDrawable is Drawable, Mover
     end
     
     action Load(Bouncer bouncer)
-Color color
-        LoadFilledCircle(16, color:Red())
+Load(GetResourcePath() + GetDefaultImage())
+        Circle circle
+        circle:SetRadius(GetWidth() / 2.0)
+        SetShape(circle)
         
         bounceForce = bouncer:GetForce()
         
@@ -50,6 +53,14 @@ end
 
     action SetBounceForce(number bounceForce)
         me:bounceForce = bounceForce
+    end
+    
+action GetResourcePath returns text
+        return "Resources/Images/"
+    end
+    
+    action GetDefaultImage returns text
+        return "Bouncer.png"
     end
 
 end
