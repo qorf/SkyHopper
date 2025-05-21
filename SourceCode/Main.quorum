@@ -12,6 +12,8 @@ level1:AddShortPlatform(500, 200)
 level1:AddKey(300, 400)
 level1:AddBouncer(300, 250)
 level1:AddPortal(200, 100, 500, 600)
+level1:SetMusic("Adventures in Adventureland.ogg")
+level1:SetMusicVolume(0.5)
 app:AddLevel(level1)
 
 app:Start()

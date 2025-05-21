@@ -23,6 +23,9 @@ Audio respawnSound
     
     number masterVolume = 1
     
+    Audio music = undefined
+    number musicVolume = 1
+    
     action GetResourcePath returns text
         return "Resources/Sounds/"
     end
@@ -84,6 +87,35 @@ action LoadSounds
         
         teleport:Load(GetResourcePath() + "Teleport.wav")
         teleport:SetVolume(masterVolume)
+    end
+    
+    action PlayMusic(text fileName, number volume)
+        StopMusic()
+        
+        Audio new
+        music = new
+        new:LoadToStream(GetMusicFolder() + fileName)
+        new:SetVolume(volume * masterVolume)
+        new:EnableLooping()
+        new:Play()
+    end
+    
+    action GetMusicFolder returns text
+        return "Resources/Music/"
+    end
+    
+    action StopMusic
+        if music not= undefined
+music:Stop()
+            music:Dispose()
+            music = undefined
+        end
+    end
+    
+    action StreamMusic
+        if music not= undefined
+music:Stream()
+        end
     end
     
     action PlayRespawn

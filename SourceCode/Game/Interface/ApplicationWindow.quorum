@@ -184,6 +184,8 @@ EnablePhysics2D(true)
             UpdateCameraZoom()
         end
         
+        sounds:StreamMusic()
+        
         // If the screen size has changed, refit the background.
         if screenWidth not= GetScreenWidth() or screenHeight not= GetScreenHeight()
             screenWidth = GetScreenWidth()
@@ -295,6 +297,10 @@ action LoadAnimationFrame(integer counter)
         UnloadCurrentLevel()
         
         currentLevel = level
+        
+        if level:GetMusic() not= "" and level:GetMusic() not= undefined
+            sounds:PlayMusic(level:GetMusic(), level:GetMusicVolume())
+        end
         
         SetGravity2D(level:GetGravityX(), level:GetGravityY())
         movementSpeed = level:GetPlayerSpeed()
@@ -746,6 +752,7 @@ platformItem = cast(PlatformDrawable, itemB)
                         
                         goal:PlayVictoryAnimation()
                         sounds:PlayVictory()
+                        sounds:StopMusic()
                         
                         levelDone = true
                     end

@@ -27,6 +27,9 @@ class Level
     
     text background = ""
     
+    number musicVolume = 1.0
+text music = ""
+    
     on create
         playerStartX = playerStartX:GetNotANumberValue()
         playerStartY = playerStartY:GetNotANumberValue()
@@ -252,6 +255,28 @@ If no force value is provided, the default bouncer pushes with 300 units of forc
     /*This action sets how many times the player can jump without touching the ground. By default, this value is 1.*/
     action SetMaxJumps(integer maxJumps)
         me:maxJumps = maxJumps
+    end
+
+    /*This action returns the volume of the music for this level, if there is any. This should be a value between 0 and 1.*/
+    action GetMusicVolume returns number
+        return musicVolume
+    end
+
+/*This action sets the volume of the music for this level, if there is any. This should be a value between 0 and 1.*/
+    action SetMusicVolume(number musicVolume)
+        me:musicVolume = musicVolume
+    end
+
+    /*This action returns the name of a .WAV or .OGG file in the project's Resources/Sounds folder with this level's music.
+If this value is blank, the level won't play any music. */
+    action GetMusic returns text
+        return music
+    end
+
+/*This action sets the level's music, using the name of a .WAV or .OGG file in the project's Resources/Music folder.
+If this value is blank, the level won't play any music. */
+    action SetMusic(text music)
+        me:music = music
     end
 
 end
