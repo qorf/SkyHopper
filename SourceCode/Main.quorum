@@ -1,19 +1,10 @@
 use Templates.SkyHopper.all
 
 Application app
-app:SetVolume(0.5)
-app:EnableRadar()
-app:SetZoom(1)
 
 Level level1
-level1:AddShortPlatform(50, 300)
-level1:AddShortPlatform(0, 0)
-level1:AddShortPlatform(500, 200)
-level1:AddKey(300, 400)
-level1:AddBouncer(300, 250)
-level1:AddPortal(200, 100, 500, 600)
-level1:SetMusic("Adventures in Adventureland.ogg")
-level1:SetMusicVolume(0.5)
+level1:AddShortPlatform(150, 300)
+level1:AddShortPlatform(400, 200)
 app:AddLevel(level1)
 
 app:Start()
